@@ -8,6 +8,11 @@ This is the strategic hub for **PulseOS Lite Open Source**. It is not a folder o
 
 ---
 
+## 🤝 Attribution
+Part of this repository's architecture and 100x efficiency philosophy are inspired by the [gstack](https://github.com/garrytan/gstack) methodology by Garry Tan. We acknowledge and appreciate the open-source concepts of "Boil the Lake" and the dual-layer agent framework which serve as the foundation of this engine's execution logic.
+
+---
+
 ## The PulseOS Lite Open Source Standard: High-Alpha Execution
 
 We don't do "templates." we do **Alpha**. Every file in this repo is a living component of our growth engine, governed by three core laws:
@@ -64,11 +69,12 @@ We don't do "templates." we do **Alpha**. Every file in this repo is a living co
    npm run chat
    ```
 
-Canonical company memory lives under [`000_Company_Memory`](./000_Company_Memory/). Bootstrap and direct LLM seeding use the raw source material in `001_Data_Souces`, then write durable company knowledge into the numbered folders inside `000_Company_Memory`.
+Canonical company memory lives under [`000_Company_Memory`](./000_Company_Memory/). Bootstrap and direct LLM seeding use the raw source material in `001_Data_Souces` plus usable existing docs in `000_Company_Memory`, then write durable company knowledge into the numbered folders inside `000_Company_Memory`.
 
 Bootstrap now asks only for the company name, but only after it has confirmed that real source material exists. It then reads:
 - local files from [`001_Data_Souces/Data_Souces_Folder`](./001_Data_Souces/Data_Souces_Folder/)
 - external folder references from [`001_Data_Souces/Data_Sources_References`](./001_Data_Souces/Data_Sources_References/)
+- usable, non-placeholder docs already present in [`000_Company_Memory`](./000_Company_Memory/)
 
 In simple terms:
 - `bootstrap` seeds the documents
@@ -234,8 +240,21 @@ To prevent prompt-bloat, the system inherently supports separating actionable kn
 
 ---
 
-## 🤝 Attribution
-Part of this repository's architecture and 100x efficiency philosophy are inspired by the [gstack](https://github.com/garrytan/gstack) methodology by Garry Tan. We acknowledge and appreciate the open-source concepts of "Boil the Lake" and the dual-layer agent framework which serve as the foundation of this engine's execution logic.
+## Building Toward PulseOS
+
+**PulseOS Lite is the simplest version of the broader PulseOS platform we are building.**
+
+PulseOS is designed for enterprise-level agentic workflows: a memory and runtime layer where AI systems can reason over structured company context, execute safely, and improve across teams without becoming locked to one model provider.
+
+The long-term goal is to make PulseOS an open standard for agentic memory and the enterprise infrastructure around:
+- the intelligence graph
+- the company memory graph
+- the reality graph
+- managed safe runtime environments
+- sandboxed execution for agents and tools
+- model-agnostic inference optimization at scale
+
+We are a small team backed by investors and currently building the platform. The work sits at the intersection of agent infrastructure, knowledge graphs, secure runtimes, memory systems, and inference optimization.
 
 ---
 
@@ -243,3 +262,15 @@ Part of this repository's architecture and 100x efficiency philosophy are inspir
 MIT — Fork it, build it, ship it.
 
 *Powered by PulseOS Lite Open Source — Built by JP Carrillo for Strategic Clarity at Scale.*
+
+---
+
+## Join PulseOS
+
+We are looking for technical talent to help build the open standard for agentic memory and enterprise-grade AI infrastructure.
+
+If you are excited by company memory graphs, safe agent runtimes, model-agnostic systems, or inference optimization, we would love to hear from you.
+
+Website: [pulse.tintto.com](https://pulse.tintto.com)
+
+**contact@tintto.com**

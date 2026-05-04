@@ -33,6 +33,47 @@ test("collectBootstrapIntake reads local intake files from the active intake fol
   assert.match(report.localSources[0]!.summary, /founder-notes\.md/i);
 });
 
+test("collectBootstrapIntake reads active company memory docs as bootstrap evidence", async () => {
+  const repoRoot = await createTempRepo();
+  const memoryDir = path.join(repoRoot, "000_Company_Memory", "102_Corporate_Strategy_and_Foundation");
+  await fsp.mkdir(memoryDir, { recursive: true });
+  await fsp.writeFile(
+    path.join(memoryDir, "102.1_Mission_and_Vision.md"),
+    "# Mission\n\n**Status:** Active\n\nY Combinator helps founders make something people want.",
+  );
+  await fsp.writeFile(
+    path.join(memoryDir, "102.2_Service_Portfolio_Template.md"),
+    "# Template\n\n**Status:** Template\n\n[INSERT_SERVICE_PORTFOLIO]",
+  );
+
+  const report = await collectBootstrapIntake(repoRoot, "Y Combinator");
+  assert.equal(report.localSources.length, 0);
+  assert.equal(report.externalSources.length, 0);
+  assert.equal(report.memorySources.length, 1);
+  assert.match(report.memorySources[0]!.relativePath, /000_Company_Memory/);
+  assert.match(report.memorySources[0]!.text, /make something people want/i);
+});
+
+test("buildBootstrapEvidenceBlock excludes the target company memory file from its own evidence", async () => {
+  const repoRoot = await createTempRepo();
+  const memoryDir = path.join(repoRoot, "000_Company_Memory", "102_Corporate_Strategy_and_Foundation");
+  await fsp.mkdir(memoryDir, { recursive: true });
+  const targetPath = "000_Company_Memory/102_Corporate_Strategy_and_Foundation/102.1_Mission.md";
+  await fsp.writeFile(
+    path.join(repoRoot, targetPath),
+    "# Mission\n\nSelf-only sentence that should not be echoed as grounding evidence.",
+  );
+  await fsp.writeFile(
+    path.join(memoryDir, "102.2_Service_Portfolio.md"),
+    "# Portfolio\n\nUse this neighboring company memory source for bootstrap grounding.",
+  );
+
+  const report = await collectBootstrapIntake(repoRoot, "PulseOS");
+  const block = buildBootstrapEvidenceBlock(report, targetPath);
+  assert.doesNotMatch(block, /Self-only sentence/);
+  assert.match(block, /neighboring company memory source/i);
+});
+
 test("collectBootstrapIntake falls back to legacy source intake when active intake is empty", async () => {
   const repoRoot = await createTempRepo();
   await fsp.writeFile(
@@ -123,6 +164,7 @@ test("buildBootstrapEvidenceBlock includes company name, warnings, and relevant 
   const block = buildBootstrapEvidenceBlock(report, "000_Company_Memory/102_Corporate_Strategy_and_Foundation/102.5_Pricing_Analysis.md");
 
   assert.match(block, /Company Name:\*\* PulseOS/);
+  assert.match(block, /Company Memory Files:\*\* 0/);
   assert.match(block, /Relevant Source Excerpts/);
   assert.match(block, /pricing uses annual retainers/i);
 });

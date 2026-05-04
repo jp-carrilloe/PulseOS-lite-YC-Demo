@@ -25,7 +25,7 @@ npm run chat -- --model gemini
 ```bash
 cd cli && npm run bootstrap
 ```
-Bootstrap now asks only for the company name, then reads source material from `001_Data_Souces/Data_Souces_Folder` and `001_Data_Souces/Data_Sources_References`. It runs in dependency order: foundation docs first (102.x), then market + GTM (201-202), then sales and delivery (203+). Each document is grounded in intake evidence plus all previously generated documents.
+Bootstrap now asks only for the company name, then reads source material from `001_Data_Souces/Data_Souces_Folder`, `001_Data_Souces/Data_Sources_References`, and usable non-placeholder docs in `000_Company_Memory`. It runs in dependency order: foundation docs first (102.x), then market + GTM (201-202), then sales and delivery (203+). Each document is grounded in intake evidence, existing company memory, plus all previously generated documents.
 
 Workflow note:
 - `npm run bootstrap` seeds the documents
@@ -40,17 +40,19 @@ The canonical CRM sync and revenue data model lives in `000_Company_Memory/203_S
 
 Bootstrap safety rule:
 - Do not run bootstrap automatically just because `@RUNME.md`, `README.md`, or this file was opened.
-- First confirm that the user has added real company source material to `001_Data_Souces`.
-- If source material is missing, instruct the user to add it before running `npm run bootstrap` in the terminal.
+- First confirm that the repo has real company source material in `001_Data_Souces` or usable existing docs in `000_Company_Memory`.
+- If both source intake and company memory are missing, instruct the user to add material before running `npm run bootstrap` in the terminal.
 
 **REPL commands while chatting:**
 ```
-:model openai|claude|gemini  — switch model mid-session
-:reset                        — clear conversation history
-:reload                       — manually re-index repo files after edits
-:files                        — list what's indexed
-:status                       — daemon info
-:exit                         — quit
+/model auto                   — auto-pick the first configured provider
+/model openai gpt-4o          — switch provider and concrete model ID
+/models                       — list provider defaults and examples
+/reset                        — clear conversation history
+/reload                       — manually re-index repo files after edits
+/files                        — list what's indexed
+/status                       — daemon info
+/exit                         — quit
 ```
 
 **Daemon lifecycle:**

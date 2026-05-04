@@ -6,6 +6,7 @@ export const LOCAL_INTAKE_DIR = "001_Data_Souces/Data_Souces_Folder";
 export const REFERENCE_DIR = "001_Data_Souces/Data_Sources_References";
 export const LEGACY_LOCAL_INTAKE_DIR = "001_Source_Intake/Data_Souces_Folder";
 export const LEGACY_REFERENCE_DIR = "001_Source_Intake/Data_Sources_References";
+export const COMPANY_MEMORY_DIR = "000_Company_Memory";
 const SUPPORTED_EXTENSIONS = new Set([".md", ".txt", ".json", ".csv"]);
 const SKIP_DIRS = new Set(["node_modules"]);
 const MAX_EXCERPT_LENGTH = 1600;
@@ -22,7 +23,7 @@ export interface ExternalReferenceNote {
 }
 
 export interface IntakeSource {
-  sourceType: "local_intake" | "external_reference";
+  sourceType: "local_intake" | "external_reference" | "company_memory";
   path: string;
   relativePath: string;
   text: string;
@@ -30,10 +31,19 @@ export interface IntakeSource {
   reference?: ExternalReferenceNote;
 }
 
+interface CollectSupportedFileFilterArgs {
+  fileName: string;
+  fullPath: string;
+  relativePath: string;
+  text: string;
+  normalizedText: string;
+}
+
 export interface IntakeReport {
   companyName: string;
   localSources: IntakeSource[];
   externalSources: IntakeSource[];
+  memorySources: IntakeSource[];
   parsedReferences: ExternalReferenceNote[];
   warnings: string[];
 }
@@ -42,6 +52,7 @@ export async function collectBootstrapIntake(repoRoot: string, companyName: stri
   const warnings: string[] = [];
   const localSources = await collectFirstAvailableLocalSources(repoRoot, warnings);
   const parsedReferences = await collectFirstAvailableReferenceNotes(repoRoot, warnings);
+  const memorySources = await collectCompanyMemorySources(repoRoot, warnings);
   const externalSources: IntakeSource[] = [];
 
   for (const reference of parsedReferences) {
@@ -54,6 +65,7 @@ export async function collectBootstrapIntake(repoRoot: string, companyName: stri
     companyName,
     localSources,
     externalSources,
+    memorySources,
     parsedReferences,
     warnings,
   };
@@ -75,12 +87,25 @@ async function collectFirstAvailableReferenceNotes(repoRoot: string, warnings: s
   return collectReferenceNotes(legacyRoot, repoRoot, warnings);
 }
 
+async function collectCompanyMemorySources(repoRoot: string, warnings: string[]): Promise<IntakeSource[]> {
+  const companyMemoryRoot = path.join(repoRoot, COMPANY_MEMORY_DIR);
+  return collectSupportedFiles(
+    companyMemoryRoot,
+    "company_memory",
+    warnings,
+    repoRoot,
+    undefined,
+    isUsableCompanyMemorySource,
+  );
+}
+
 async function collectSupportedFiles(
   rootDir: string,
   sourceType: IntakeSource["sourceType"],
   warnings: string[],
   repoRoot: string,
   reference?: ExternalReferenceNote,
+  filter?: (args: CollectSupportedFileFilterArgs) => boolean,
 ): Promise<IntakeSource[]> {
   if (!fs.existsSync(rootDir)) return [];
 
@@ -105,7 +130,7 @@ async function collectSupportedFiles(
         continue;
       }
       if (!entry.isFile()) continue;
-      if (shouldIgnoreIntakeFile(entry.name)) continue;
+      if (sourceType !== "company_memory" && shouldIgnoreIntakeFile(entry.name)) continue;
 
       const extension = path.extname(entry.name).toLowerCase();
       if (!SUPPORTED_EXTENSIONS.has(extension)) continue;
@@ -114,10 +139,12 @@ async function collectSupportedFiles(
         const text = await fsp.readFile(fullPath, "utf8");
         const normalizedText = normalizeText(text);
         if (!normalizedText) continue;
+        const displayPath = toDisplayPath(fullPath, repoRoot);
+        if (filter && !filter({ fileName: entry.name, fullPath, relativePath: displayPath, text, normalizedText })) continue;
         results.push({
           sourceType,
           path: fullPath,
-          relativePath: toDisplayPath(fullPath, repoRoot),
+          relativePath: displayPath,
           text: normalizedText.slice(0, MAX_EXCERPT_LENGTH),
           summary: summarizeSource(fullPath, normalizedText),
           reference,
@@ -187,7 +214,9 @@ export function buildBootstrapEvidenceBlock(
   templatePath?: string,
   maxSources = 8,
 ): string {
-  const allSources = [...report.localSources, ...report.externalSources];
+  const allSources = [...report.localSources, ...report.externalSources, ...report.memorySources].filter(
+    (source) => !templatePath || source.relativePath !== templatePath,
+  );
   const selectedSources = templatePath ? rankRelevantSources(allSources, templatePath).slice(0, maxSources) : allSources.slice(0, maxSources);
 
   const lines = [
@@ -196,6 +225,7 @@ export function buildBootstrapEvidenceBlock(
     `- **Company Name:** ${report.companyName}`,
     `- **Local Intake Files:** ${report.localSources.length}`,
     `- **External Reference Files:** ${report.externalSources.length}`,
+    `- **Company Memory Files:** ${report.memorySources.length}`,
   ];
 
   if (report.warnings.length > 0) {
@@ -258,6 +288,14 @@ function summarizeSource(filePath: string, text: string): string {
   const firstLine = normalizeText(text.split("\n").find((line) => line.trim()) ?? "");
   const base = `${path.basename(filePath)}: ${firstLine || "Supporting company material."}`;
   return base.slice(0, MAX_SUMMARY_LENGTH);
+}
+
+function isUsableCompanyMemorySource(args: CollectSupportedFileFilterArgs): boolean {
+  if (args.relativePath.includes("/000_Agent_Shortcuts/")) return false;
+  if (args.fileName === "AGENT.md" || /_Agent\.md$/i.test(args.fileName)) return false;
+  if (/template/i.test(args.fileName)) return false;
+  if (args.text.includes("[INSERT") || args.text.includes("[CLIENT_NAME]") || args.text.includes("[COMPANY_NAME]")) return false;
+  return true;
 }
 
 function normalizeText(value: string): string {

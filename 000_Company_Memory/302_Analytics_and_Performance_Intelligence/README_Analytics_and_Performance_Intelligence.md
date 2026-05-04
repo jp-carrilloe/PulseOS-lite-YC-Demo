@@ -9,7 +9,7 @@
 
 ## Purpose
 
-Data-driven insights into the efficiency of [CLIENT_NAME]'s GTM operations and the performance of autonomous agents and campaigns.
+Data-driven insights into the efficiency of Y Combinator's GTM operations and the performance of autonomous agents and campaigns.
 
 ## Sub-folders
 

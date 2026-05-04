@@ -19,7 +19,7 @@ This folder converts strategy and market intelligence into an executable go-to-m
 ## Sub-folders
 ### 202.1 GTM Foundation
 - Positioning, category narrative, strategic GTM principles.
-- Key asset: `202.1_GTM_Foundation/202.1_GTM_Strategy.md`
+- Key asset: `202.1_GTM_Foundation/202.1_YC_Master_GTM_Strategy.md`
 
 ### 202.2 GTM Motion and Channels
 - Channel selection, sales motion design, motion rules.
@@ -31,7 +31,7 @@ This folder converts strategy and market intelligence into an executable go-to-m
 - Experiment backlog, quarterly GTM bets, roadmap updates.
 
 ## Template Inputs
-- Company Name: [CLIENT_NAME]
+- Company Name: Y Combinator
 
 ---
 

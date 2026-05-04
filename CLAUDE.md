@@ -44,12 +44,14 @@ Bootstrap safety rule:
 
 **REPL commands while chatting:**
 ```
-:model openai|claude|gemini  — switch model mid-session
-:reset                        — clear conversation history
-:reload                       — re-index repo files after edits
-:files                        — list what's indexed
-:status                       — daemon info
-:exit                         — quit
+/model auto                   — auto-pick the first configured provider
+/model openai gpt-4o          — switch provider and concrete model ID
+/models                       — list provider defaults and examples
+/reset                        — clear conversation history
+/reload                       — re-index repo files after edits
+/files                        — list what's indexed
+/status                       — daemon info
+/exit                         — quit
 ```
 
 **Daemon lifecycle:**

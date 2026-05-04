@@ -25,7 +25,7 @@ Contains standard Profit & Loss statement templates, historic tracking models, a
 *Note: Ensure all sensitive financial documents conform to the company's data privacy and security policies before sharing.*
 
 ## Template Inputs
-- Company Name: [CLIENT_NAME]
+- Company Name: Y Combinator
 
 ---
 

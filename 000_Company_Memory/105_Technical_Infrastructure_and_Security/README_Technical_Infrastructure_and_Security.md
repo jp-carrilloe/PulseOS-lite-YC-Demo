@@ -9,7 +9,7 @@
 
 ## Purpose
 
-Documentation regarding the reliability, security, and technical connectivity of the [CLIENT_NAME] platform and its integrations.
+Documentation regarding the reliability, security, and technical connectivity of the Y Combinator platform and its integrations.
 
 ## Sub-folders
 

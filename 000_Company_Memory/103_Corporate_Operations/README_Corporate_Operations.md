@@ -9,7 +9,7 @@
 
 ## Purpose
 
-The **operational backbone** of **[CLIENT_NAME]**. This section defines how the company is set up, how people are managed, how work gets done, and what tools and vendors power daily execution. Everything here is active and touched regularly — unlike the Legal layer, which is a constraint layer consulted on demand.
+The **operational backbone** of **Y Combinator**. This section defines how the company is set up, how people are managed, how work gets done, and what tools and vendors power daily execution. Everything here is active and touched regularly — unlike the Legal layer, which is a constraint layer consulted on demand.
 
 ## Structure
 

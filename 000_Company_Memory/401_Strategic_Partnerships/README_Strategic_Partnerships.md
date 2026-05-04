@@ -9,13 +9,13 @@
 
 ## Purpose
 
-Strategic documentation for managing external relationships that amplify [CLIENT_NAME]'s market reach and distribution channels.
+Strategic documentation for managing external relationships that amplify Y Combinator's market reach and distribution channels.
 
 ## Sub-folders
 
 ### 401.1 Channel Partnerships
 - **Purpose:** Framework designed for distribution, value-added resellers (VARs), and agencies that co-deliver or resell the ecosystem.
-- **Key Asset:** `channel_partnerships.md`
+- **Key Asset:** `401.1_YC_Ecosystem_and_Perk_Partnerships.md`
 
 ### 401.2 Referral and Affiliate Programs
 - **Purpose:** Incentives, engagement models, and onboarding materials for independent promoters, advisors, and complementary businesses.

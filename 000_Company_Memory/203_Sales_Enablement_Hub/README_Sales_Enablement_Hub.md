@@ -59,7 +59,7 @@ The **Sales Enablement Hub** is the operational domain responsible for bridging 
 - **Priority:** High (Pipeline & Conversion)
 
 ## Template Inputs
-- Company Name: [CLIENT_NAME]
+- Company Name: Y Combinator
 
 ---
 

@@ -14,6 +14,7 @@ import {
   type ModelName,
   getAvailablePort,
   getCliDbPath,
+  getDefaultChatModel,
   getDaemonIdleMs,
   getDaemonVersion,
   loadRepoEnv,
@@ -38,6 +39,7 @@ interface ChatMessage {
 interface Session {
   id: string;
   model: ModelName;
+  modelId: string;
   messages: ChatMessage[];
   createdAt: string;
 }
@@ -278,10 +280,11 @@ async function chatWithClaude(
   messages: ChatMessage[],
   newMessage: string,
   systemPrompt: string,
+  modelId: string,
 ): Promise<string> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const response = await client.messages.create({
-    model: "claude-opus-4-6",
+    model: modelId,
     max_tokens: 4096,
     // Cache the large system prompt (repo context) across turns — saves ~90% on input tokens
     system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
@@ -300,10 +303,11 @@ async function chatWithOpenAI(
   messages: ChatMessage[],
   newMessage: string,
   systemPrompt: string,
+  modelId: string,
 ): Promise<string> {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const response = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: modelId,
     messages: [
       { role: "system", content: systemPrompt },
       ...messages.map((m) => ({ role: m.role, content: m.content })),
@@ -317,11 +321,12 @@ async function chatWithGemini(
   messages: ChatMessage[],
   newMessage: string,
   systemPrompt: string,
+  modelId: string,
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY ?? "";
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: modelId,
     systemInstruction: systemPrompt,
   });
 
@@ -350,6 +355,17 @@ export function createDaemonApp(options: {
 }) {
   const app = new Hono();
   const { state, token, sessions, resetIdleTimer, onShutdown, kbIndex, terminalManager, getReadyState, awaitReady } = options;
+  let ensureCurrentRequest: Promise<void> | null = null;
+
+  const ensureCurrentIndex = async () => {
+    await awaitReady();
+    if (!ensureCurrentRequest) {
+      ensureCurrentRequest = kbIndex.ensureCurrent().then(() => undefined).finally(() => {
+        ensureCurrentRequest = null;
+      });
+    }
+    await ensureCurrentRequest;
+  };
 
   const auth = async (ctx: Context, next: Next) => {
     const header = ctx.req.header("authorization");
@@ -415,9 +431,7 @@ export function createDaemonApp(options: {
       );
     }
     resetIdleTimer();
-    if (kbIndex.getDocumentCount() === 0) {
-      await awaitReady();
-    }
+    await ensureCurrentIndex();
     return ctx.json({ data: scopeGraphToCompanyMemory(await kbIndex.buildGraphSnapshot()) });
   });
 
@@ -457,6 +471,7 @@ export function createDaemonApp(options: {
       );
     }
     resetIdleTimer();
+    await ensureCurrentIndex();
     return ctx.json({ data: await kbIndex.inspectRebuildStatus() });
   });
 
@@ -659,9 +674,7 @@ export function createDaemonApp(options: {
       );
     }
     resetIdleTimer();
-    if (kbIndex.getDocumentCount() === 0) {
-      await awaitReady();
-    }
+    await ensureCurrentIndex();
     return ctx.json({ data: await kbIndex.buildGraphSnapshot() });
   });
 
@@ -700,7 +713,10 @@ export function createDaemonApp(options: {
       const result = await handleCommand(body.name, body.args ?? {}, {
         awaitReady,
         sessions,
-        buildPromptContext: (message) => kbIndex.buildPromptContext(message),
+        buildPromptContext: async (message) => {
+          await ensureCurrentIndex();
+          return kbIndex.buildPromptContext(message);
+        },
         reloadRepo: () => kbIndex.sync(),
         rebuildAdvisor: () => kbIndex.inspectRebuildStatus(),
         repoFiles: () => kbIndex.listFiles(),
@@ -752,11 +768,13 @@ async function handleCommand(
 
       const sessionId = String(args.session_id ?? "main");
       const model = (args.model as ModelName | undefined) ?? "openai";
+      const modelId = String(args.model_id ?? "").trim() || getDefaultChatModel(model);
 
       if (!ctx.sessions.has(sessionId)) {
         ctx.sessions.set(sessionId, {
           id: sessionId,
           model,
+          modelId,
           messages: [],
           createdAt: new Date().toISOString(),
         });
@@ -764,6 +782,7 @@ async function handleCommand(
 
       const session = ctx.sessions.get(sessionId)!;
       if (args.model) session.model = model;
+      if (args.model || args.model_id) session.modelId = modelId;
 
       const retrievalQuery = buildRetrievalQuery(session.messages, message);
       const systemPrompt = buildSystemPrompt(await ctx.buildPromptContext(retrievalQuery));
@@ -771,13 +790,13 @@ async function handleCommand(
 
       switch (session.model) {
         case "claude":
-          reply = await chatWithClaude(session.messages, message, systemPrompt);
+          reply = await chatWithClaude(session.messages, message, systemPrompt, session.modelId);
           break;
         case "openai":
-          reply = await chatWithOpenAI(session.messages, message, systemPrompt);
+          reply = await chatWithOpenAI(session.messages, message, systemPrompt, session.modelId);
           break;
         case "gemini":
-          reply = await chatWithGemini(session.messages, message, systemPrompt);
+          reply = await chatWithGemini(session.messages, message, systemPrompt, session.modelId);
           break;
         default:
           throw new Error(`The selected model "${String(session.model)}" is not supported by this CLI session.`);
@@ -786,7 +805,7 @@ async function handleCommand(
       session.messages.push({ role: "user", content: message });
       session.messages.push({ role: "assistant", content: reply });
 
-      return { reply, model: session.model, sessionId, messageCount: session.messages.length };
+      return { reply, model: session.model, modelId: session.modelId, sessionId, messageCount: session.messages.length };
     }
 
     case "reset_session": {
@@ -799,6 +818,7 @@ async function handleCommand(
       return Array.from(ctx.sessions.values()).map((s) => ({
         id: s.id,
         model: s.model,
+        modelId: s.modelId,
         messageCount: s.messages.length,
         createdAt: s.createdAt,
       }));
@@ -2513,22 +2533,23 @@ export async function startDaemonServer(env: NodeJS.ProcessEnv = process.env): P
   process.on("SIGTERM", () => void shutdown());
 
   await writeDaemonState(state, env);
-  await kbIndex.inspectRebuildStatus({ persistLog: true });
-  indexingPromise = Promise.resolve();
-  readyState.ready = true;
-  readyState.error = null;
-  indexingError = null;
-
-  const existingCount = kbIndex.getDocumentCount();
-  if (existingCount > 0) {
-    process.stdout.write(
-      `[pulseos-lite-open-source-cli] Using existing SQLite index with ${existingCount} documents. Run :reload or npm run index only when you want to refresh indexing/vectorization.\n`,
-    );
-  } else {
-    process.stdout.write(
-      "[pulseos-lite-open-source-cli] No indexed documents are available yet. Run npm run index or :reload to build the SQL index and vectors manually.\n",
-    );
-  }
+  indexingPromise = kbIndex.ensureCurrent()
+    .then((result) => {
+      readyState.ready = true;
+      readyState.error = null;
+      indexingError = null;
+      process.stdout.write(
+        `[pulseos-lite-open-source-cli] SQLite index is current with ${result.fileCount} documents. Graph and retrieval will use the latest Markdown files.\n`,
+      );
+    })
+    .catch((error) => {
+      indexingError = error instanceof Error ? error : new Error(String(error));
+      readyState.ready = false;
+      readyState.error = indexingError.message;
+      process.stderr.write(
+        `[pulseos-lite-open-source-cli] Could not refresh the SQLite index: ${indexingError.message}\n`,
+      );
+    });
   resetIdleTimer();
 }
 

@@ -1,14 +1,14 @@
-# 🤖 [CLIENT_NAME] GTM — System Overview & Architecture
+# 🤖 Y Combinator — System Overview & Architecture
 
 **Version:** 101.1
-**Last Updated:** 2026-04-14
+**Last Updated:** 2026-05-04
 **Author/Editor:** @ARK
-**Status:** Template
+**Status:** Active
 
 ---
 
 ## 🎯 Purpose
-This directory (`101_System_Overview`) serves as the central nervous system for **[CLIENT_NAME]**. It defines the core governance model, agent protocols, and the architectural blueprint for an **Agent Economy Platform** that coordinates specialized execution engines into a unified growth organism.
+This directory (`101_System_Overview`) serves as the central nervous system for **Y Combinator**. It defines the core governance model, agent protocols, and the architectural blueprint for an **Agent Economy Platform** that coordinates specialized execution engines into a unified growth organism, focused on turning builders into formidable founders.
 
 This repository is organized into a scalable **Hybrid 100s Framework** that separates high-level strategy from autonomous execution.
 
@@ -115,7 +115,7 @@ When any agent-to-agent or agent-to-file relationship changes, all linked docume
 
 Strategic coherence is enforced through a mandatory sequential planning process. Never build collateral (203) before the Strategy Spine (102) and Intel Dossiers (201) are approved.
 
-1.  **[102_Corporate_Strategy](../102_Corporate_Strategy_and_Foundation):** Define **[CLIENT_NAME]'s** identity, mission, and Portfolio Engine.
+1.  **[102_Corporate_Strategy](../102_Corporate_Strategy_and_Foundation):** Define **Y Combinator's** identity, mission, and Portfolio Engine.
 2.  **[201_Market_Intel](../201_Market_Intelligence_and_ICP):** Build Intelligence Dossiers on target evidence, signals, and ICP.
 3.  **[202_GTM_Strategy](../202_Go-to-Market_Strategy):** Design positioning and channel motions (The GTM Spine).
 4.  **[203_Sales_Enablement](../203_Sales_Enablement_Hub):** Build high-conversion assets and internal agent logic.

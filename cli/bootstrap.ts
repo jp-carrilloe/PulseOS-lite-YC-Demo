@@ -158,7 +158,7 @@ async function runIntake(rl: ReturnType<typeof createInterface>): Promise<Bootst
   process.stdout.write("\n" + "─".repeat(60) + "\n");
   process.stdout.write("Bootstrap Onboarding\n");
   process.stdout.write(
-    "Bootstrap now reads from 001_Data_Souces and uses those source materials to fill the repo.\nOnly the company name is required here; the rest is inferred from your intake documents.\n",
+    "Bootstrap now reads from 001_Data_Souces and usable 000_Company_Memory docs to fill the repo.\nOnly the company name is required here; the rest is inferred from your source documents.\n",
   );
   process.stdout.write("─".repeat(60) + "\n\n");
 
@@ -240,6 +240,7 @@ async function main() {
   let bootstrapTemplateFiles = 0;
   let bootstrapLocalSourceCount = 0;
   let bootstrapExternalSourceCount = 0;
+  let bootstrapCompanyMemorySourceCount = 0;
   let bootstrapWarningsCount = 0;
 
   try {
@@ -247,7 +248,7 @@ async function main() {
       "\npulseos-lite-open-source-cli bootstrap — Seed your PulseOS Lite Open Source repo with real content\n",
     );
     process.stdout.write(
-      "Bootstrap seeds documents in dependency order. It reads source material from 001_Data_Souces and keeps the originals in place.\n",
+      "Bootstrap seeds documents in dependency order. It reads source material from 001_Data_Souces and usable existing 000_Company_Memory docs, keeping originals in place.\n",
     );
 
     // Discover and sort template files
@@ -267,19 +268,19 @@ async function main() {
     }
 
     process.stdout.write(
-      "\nReviewing source material in `001_Data_Souces/Data_Souces_Folder` and `001_Data_Souces/Data_Sources_References` before bootstrap starts...\n",
+      "\nReviewing source material in `001_Data_Souces` and existing docs in `000_Company_Memory` before bootstrap starts...\n",
     );
     const intakeReport = await collectBootstrapIntake(REPO_ROOT, "");
-    const totalIntakeFiles = intakeReport.localSources.length + intakeReport.externalSources.length;
+    const totalIntakeFiles = intakeReport.localSources.length + intakeReport.externalSources.length + intakeReport.memorySources.length;
     if (totalIntakeFiles === 0) {
       process.stderr.write(
-        "\nBootstrap could not find any usable intake material.\nAdd source files to `001_Data_Souces/Data_Souces_Folder` or add valid reference notes in `001_Data_Souces/Data_Sources_References`, then run `npm run bootstrap` again.\n",
+        "\nBootstrap could not find any usable source material.\nAdd source files to `001_Data_Souces`, add valid reference notes in `001_Data_Souces/Data_Sources_References`, or add usable docs in `000_Company_Memory`, then run `npm run bootstrap` again.\n",
       );
       return;
     }
 
     process.stdout.write(
-      `Found ${intakeReport.localSources.length} local intake files and ${intakeReport.externalSources.length} external reference files.\n`,
+      `Found ${intakeReport.localSources.length} local intake files, ${intakeReport.externalSources.length} external reference files, and ${intakeReport.memorySources.length} usable company memory files.\n`,
     );
     if (intakeReport.warnings.length > 0) {
       process.stdout.write("Bootstrap found a few intake warnings:\n");
@@ -319,6 +320,7 @@ async function main() {
     bootstrapTemplateFiles = templateFiles.length;
     bootstrapLocalSourceCount = intakeReport.localSources.length;
     bootstrapExternalSourceCount = intakeReport.externalSources.length;
+    bootstrapCompanyMemorySourceCount = intakeReport.memorySources.length;
     bootstrapWarningsCount = intakeReport.warnings.length;
 
     await writeBootstrapState(
@@ -332,6 +334,7 @@ async function main() {
         failed: 0,
         localSourceCount: intakeReport.localSources.length,
         externalSourceCount: intakeReport.externalSources.length,
+        companyMemorySourceCount: intakeReport.memorySources.length,
         warningsCount: intakeReport.warnings.length,
         error: null,
       },
@@ -400,6 +403,7 @@ async function main() {
         failed,
         localSourceCount: intakeReport.localSources.length,
         externalSourceCount: intakeReport.externalSources.length,
+        companyMemorySourceCount: intakeReport.memorySources.length,
         warningsCount: intakeReport.warnings.length,
         error: failed > 0 ? `${failed} template files failed during bootstrap.` : null,
       },
@@ -421,6 +425,7 @@ async function main() {
           failed: 0,
           localSourceCount: bootstrapLocalSourceCount,
           externalSourceCount: bootstrapExternalSourceCount,
+          companyMemorySourceCount: bootstrapCompanyMemorySourceCount,
           warningsCount: bootstrapWarningsCount,
           error: error instanceof Error ? error.message : String(error),
         },

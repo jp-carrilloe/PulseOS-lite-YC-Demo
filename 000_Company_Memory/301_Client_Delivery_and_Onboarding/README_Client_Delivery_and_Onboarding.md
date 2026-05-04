@@ -15,7 +15,7 @@ Resources for managing the post-sale transition and ensuring client success duri
 
 ### 301.1 Implementation Framework
 - **Purpose:** Project management templates and milestones for the initial implementation phase.
-- **Key Asset:** `implementation_plan.md`
+- **Key Asset:** `301.1_YC_Batch_Execution_Plan.md`
 
 ### 301.2 Technical Onboarding
 - **Purpose:** Specific requirements and guides for CRM integration, API access, and system setup.
@@ -36,7 +36,7 @@ Resources for managing the post-sale transition and ensuring client success duri
 - [ ] Curate the recommended tool stack
 
 ## Template Inputs
-- Company Name: [CLIENT_NAME]
+- Company Name: Y Combinator
 
 ---
 
